@@ -4,7 +4,7 @@ package DAST;
 import java.util.Arrays;
 
 /**
- *
+ * Implements a heap.  See Cormen chapter 6.
  * @author Dov Neimand
  */
 public class PriorityQueue<T extends Comparable<T>> extends Heap<T>{
@@ -64,6 +64,10 @@ public class PriorityQueue<T extends Comparable<T>> extends Heap<T>{
         notificationOfIncreasedKey(heapSize - 1);
     }
     
+    /**
+     * Tests some of the methods.
+     * @param args 
+     */
     public static void main(String[] args) {
         PriorityQueue<Integer> queue = new PriorityQueue<>(new Integer[5]);
         queue.emptyHeap();

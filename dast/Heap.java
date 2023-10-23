@@ -3,7 +3,7 @@ package DAST;
 import java.util.Arrays;
 
 /**
- * Implements heapSort as described in Cormen Algorithms.
+ * Implements heapSort as described in Cormen chapter 6.
  *
  * @author Dov Neimand
  */
@@ -189,6 +189,10 @@ public class Heap<T extends Comparable<T>> {
         heapSize = 0;
     }
     
+    /**
+     * Tests some of the methods.
+     * @param args 
+     */
     public static void main(String[] args) {
 
         System.out.println(new Heap(5, 1, 8, -7, 23).heapSort());
