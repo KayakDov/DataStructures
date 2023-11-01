@@ -17,161 +17,19 @@ import java.util.stream.Stream;
  */
 public class BinarySearchTree<T extends Comparable<T>> {
 
-    /**
-     * Each node has the property that all nodes to the left of it have smaller
-     * keys and all nodes to the right have bigger keys.
-     */
-    private class Node extends BinaryNode<T>{
-
-        /**
-         * The constructor for a node. left and right subtrees are by default
-         * null.
-         *
-         * @param key The element to be held at this node.
-         */
+    
+    private class Node extends BSTNode<T>{
+    
         public Node(T key) {
             super(key);
         }
-
-        @Override
-        public void setRight(T t) {
-            super.setRight(new Node(t));
-        }
-        
-        @Override
-        public void setLeft(T t) {
-            setLeft(new Node(t)); 
-        }
-
-        @Override
-        public Node getRight() {
-            return (Node)super.getRight(); 
-        }
-
-        @Override
-        public Node getLeft() {
-            return (Node)super.getLeft();
-        }
-
-        @Override
-        public Node getParent() {
-            return (Node)super.getParent(); 
-        }        
-        
-        /**
-         * The minimum element in the subtree rooted at this node.
-         *
-         * @return The minimum element in the subtree rooted at this node.
-         */
-        public Node min() {
-            if (!hasLeft()) return this;
-            return getLeft().min();
-        }
-
-        /**
-         * The Maximum element in the subtree rooted at this node.
-         *
-         * @return The maximum element in the subtree rooted at this node.
-         */
-        public Node max() {
-            Node n = this;
-            while (n.hasRight()) n = n.getRight();
-            return n;
-        }
-
-        /**
-         * A stream of all the elements in this tree in order.
-         *
-         * @return A stream of all the elements in this tree in order.
-         */
-        public Stream<T> inOrderTreeWalk() {
-            
-            Stream leftStream = 
-                    hasLeft() ? getLeft().inOrderTreeWalk() : Stream.of(),
-                   rightStream = 
-                    hasRight() ? getRight().inOrderTreeWalk() : Stream.of();
-
-            return Stream.concat(
-                    Stream.concat(leftStream, Stream.of(getKey())),
-                    rightStream
-            );
-        }
-
-        /**
-         * The smallest element in the tree greater than this.
-         */
-        public Node successor() {
-            if (hasRight()) return getRight().min();
-            return null;
-            
-        }
-
-        /**
-         * The greatest element in the tree less than this.
-         *
-         * @return
-         */
-        public Node predecessor() {
-            if(hasLeft()) return getLeft().max();
-            return null;
-        }
-
-        /**
-         * Inserts a key into the tree.
-         *
-         * @param t The key to be inserted.
-         */
-        public void insert(T t) {
-            if (t.compareTo(getKey()) < 0) {
-                if (hasLeft()) getLeft().insert(t);
-                else setLeft(t);
-            } else {
-                if (hasRight()) getRight().insert(t);
-                else setRight(t);
-            }
-        }
-
-        /**
-         * If there is only one child, that child is returned.
-         *
-         * @return The only child if there is only one. Otherwise undefined.
-         */
-        public Node loneChild() {
-            return hasLeft() ? getLeft() : getRight();
-        }
-                
-        /**
-         * Replace this node with its successor while preserving the rest of the
-         * tree.
-         */
-        private void replaceAndPassChildren() {
-            Node suc = successor();
-            suc.replace(suc.getRight());
-            setKey(suc.getKey());
-        }
-
-        /**
-         * Deletes a node from the tree.
-         *
-         * @param t The element in the node.
-         */
-        public void delete(T t) {
-            int comp = t.compareTo(getKey());
-
-            if (comp < 0 && hasLeft()) getLeft().delete(t);
-            else if (comp > 0 && hasRight())getRight().delete(t);
-            else if(comp == 0){
-                if (!hasLeft() || ! hasRight())  replace(loneChild());
-                else replaceAndPassChildren();
-            }
-
-        }
-    }
-
+    
+    };
+    
     /**
      * The root node of the tree.
      */
-    private Node root;
+    private BSTNode root;
 
     /**
      * Is the binary tree empty.
@@ -194,13 +52,14 @@ public class BinarySearchTree<T extends Comparable<T>> {
 
     /**
      * Does the tree contain the given item.
-     *
+     * Note, we implement this method here rather than in BSTNode to 
+     * give an example of iterative/non recursive implementation.
      * @param t The item that may be in the tree.
      * @return True if t is in the tree and false otherwise.
      */
     public boolean contains(T t) {
         if (isEmpty()) return false;
-        Node n = root;
+        BSTNode<T> n = root;
         while (!n.isLeaf() && !n.getKey().equals(t))
             n = t.compareTo(n.getKey()) < 0 ? n.getLeft() : n.getRight();
         return n.getKey().equals(t);
@@ -212,7 +71,7 @@ public class BinarySearchTree<T extends Comparable<T>> {
      * @param t The element to be added.
      */
     public void insert(T t) {
-        if (isEmpty()) root = new Node(t);
+        if (isEmpty()) root = new BSTNode(t);
         else root.insert(t);
     }
 
