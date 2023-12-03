@@ -120,12 +120,14 @@ public class BSTNode<T extends Comparable<T>> extends BinaryNode<T> {
     }
 
     /**
-     * Replace this node with its successor while preserving the rest of the
-     * tree.
-     * @param suc The successor to this node.
+     * Replace this node with its successor.  This children of this node will 
+     * become the children of the successor and the parent of this node, the 
+     * parent of the successor. Meanwhile the successor is cleanly removed
+     * from the tree with its right child taking its place.
+     * @param suc The unique successor to this node.
      * @param return this.
      */
-    protected BSTNode<T> replaceAndPassChildren(BSTNode<T> suc) {
+    protected BSTNode<T> replaceWithSuccessor(BSTNode<T> suc) {
         suc.transplant(suc.getRight());
         setKey(suc.getKey());
         return this;
@@ -136,7 +138,7 @@ public class BSTNode<T extends Comparable<T>> extends BinaryNode<T> {
      */
     public void delete() {
         if (hasOneChildOrLess()) transplant(aChild());
-        else replaceAndPassChildren(successor());
+        else replaceWithSuccessor(successor());
     }
     
     /**

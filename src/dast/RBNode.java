@@ -1,7 +1,6 @@
 package dast;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,6 +8,7 @@ import java.util.logging.Logger;
  * A node for a red black search tree. See Cormen for details.
  *
  * @author Dov Neimand
+ * @param <T> The type of element held in the node.
  */
 public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
 
@@ -64,11 +64,11 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
         return (RBNode<T>) super.sibling();
     }
 
-    public boolean isRed() {
+    private boolean isRed() {
         return isRed;
     }
 
-    public boolean isBlack() {
+    private boolean isBlack() {
         return !isRed();
     }
 
@@ -196,7 +196,7 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
      * To be called after an insertion was made. This method fixes the trees
      * colors using rotations where necessary to maintain properties.
      */
-    public void insertFixUp() {
+    private void insertFixUp() {
         if (isRoot()) setBlack();
         else if (getParent().isRed())
             if (hasUnlce() && ((RBNode) uncle()).isRed()) {
@@ -213,6 +213,8 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
 
     }
 
+    
+    
     /**
      * Deletes the node containing t.
      */
@@ -223,14 +225,13 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
         if (hasOneChildOrLess())
             transplant(replacementNode = (RBNode<T>) aChild());
         else {
-            successor = (RBNode<T>) successor();
+            origIsRed = (successor = (RBNode<T>) successor()).isRed();
 
             if (!successor.hasRight()) successor.setRight((T) null);
 
             replacementNode = successor.getRight();
 
-            origIsRed = successor.isRed();
-            replaceAndPassChildren(successor);
+            replaceWithSuccessor(successor);
         }
 
         if (!origIsRed && replacementNode != null) {
@@ -246,14 +247,14 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
      * @param nodes The node whose color is to be checked.
      * @return True if the node is black, false otherwise.
      */
-    public static boolean isBlack(RBNode... nodes) {
+    private static boolean isBlack(RBNode... nodes) {
         return Arrays.stream(nodes).allMatch(n -> n == null || n.isBlack());
     }
 
     /**
      * Sets the proffered nodes to be black.
      *
-     * @param nodes The nodes whos color should be set to black.
+     * @param nodes The nodes whose color should be set to black.
      */
     private void setBlack(RBNode<T>... nodes) {
         Arrays.stream(nodes).filter(n -> n != null)
@@ -264,16 +265,16 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
      * What to do when a deletion was made, and the node of interest has a red
      * sibling.
      */
-    private void deleteFixRedSibling() {
+    private void delFixRedSibling() {
         sibling().setBlack();
         getParent().setRed();
         sibling().rotateUp();
     }
 
     /**
-     * To fix a deleltion where both nephews are black.
+     * To fix a deletion where both nephews are black.
      */
-    private void deleteFixBlackNephews() {
+    private void delFixBlackNephews() {
         sibling().setRed();
         getParent().deleteFixUp();
     }
@@ -281,7 +282,7 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
     /**
      * To be called as part of delete fix up, when just the far nephew is black.
      */
-    private void deleteFixJustFarNephewBlack() {
+    private void delFixJustFarNephewBlack() {
         sibling().nearNephew().setBlack();
         sibling().setRed();
         sibling().nearNephew().rotateUp();
@@ -291,7 +292,7 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
      * To be called to fix deletions when the node of interest has a far nephew
      * that's red.
      */
-    private void deleteFixFarNephewRed() {
+    private void delFixFarNephewRed() {
         sibling().isRed = getParent().isRed();
         setBlack(getParent(), farNephew());
         sibling().rotateUp();
@@ -300,23 +301,27 @@ public class RBNode<T extends Comparable<T>> extends BSTNode<T> {
     /**
      * Corrects mistakes that may have been introduced during deletion.
      */
-    public void deleteFixUp() {
+    private void deleteFixUp() {
         if (isRoot() || isRed()) {
             setBlack();
             return;
         }
 
-        if (sibling().isRed()) deleteFixRedSibling();
+        if (sibling().isRed()) delFixRedSibling();
 
-        if (isBlack(nearNephew(), farNephew())) deleteFixBlackNephews();
+        if (isBlack(nearNephew(), farNephew())) delFixBlackNephews();
 
         else {
-            if (isBlack(farNephew())) deleteFixJustFarNephewBlack();
-            deleteFixFarNephewRed();
+            if (isBlack(farNephew())) delFixJustFarNephewBlack();
+            delFixFarNephewRed();
         }
 
     }
 
+    /**
+     * some simple tests for the node.
+     * @param args Not used.
+     */
     public static void main(String[] args) {
         RBNode<Integer> root = new RBNode<>(5);
         for (int i = 0; i > -10; i--)
