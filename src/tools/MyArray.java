@@ -102,7 +102,7 @@ public class MyArray<T> {
      */
     public static <K> void delete(int i, int lastIndex, K[] array) {
         System.arraycopy(array, i + 1, array, i, lastIndex - i - 1);
-
+        array[lastIndex - 1] = null;
     }
     
     /**

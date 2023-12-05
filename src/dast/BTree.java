@@ -186,7 +186,7 @@ public class BTree<T extends Comparable<T>> {
         if (isLeaf()) {
             keys[shiftToIndex(key)] = key;
             numKeys++;
-        } else insertInChild(key, indexOf(key));
+        } else insertInChild(key, -indexOf(key) - 1);
 
         return this;
     }
@@ -255,16 +255,24 @@ public class BTree<T extends Comparable<T>> {
      * otherwise.
      */
     private boolean hasKeyToGive(int childIndex) {
-        return childIndex >= 0 && childIndex < children.length
-                && children[childIndex].getNumKeys() > keys.length / 2;
+        return childIndex >= 0 && childIndex < numKeys + 1
+                && !isLeaf() && children[childIndex].hasKeyToGive();
+    }
+    
+    /**
+     * Can this node delete a key and still be large enough?
+     * @return True if yes, false otherwise.
+     */
+    private boolean hasKeyToGive(){
+        return getNumKeys() > (keys.length - 1) / 2;
     }
 
     /**
-     * Deltes the first key and its left child.
+     * Deletes the first key and its left child.
      */
     private void deleteFirst() {
         MyArray.delete(0, numKeys, keys);
-        MyArray.delete(0, numKeys + 1, children);
+        if(!isLeaf()) MyArray.delete(0, numKeys + 1, children);
         numKeys--;
     }
 
@@ -273,7 +281,7 @@ public class BTree<T extends Comparable<T>> {
      */
     private void deleteLast() {
         keys[getNumKeys() - 1] = null;
-        children[getNumKeys()] = null;
+        if(!isLeaf())children[getNumKeys()] = null;
         numKeys--;
     }
 
@@ -297,7 +305,7 @@ public class BTree<T extends Comparable<T>> {
      */
     private void insertLast(T key, BTree<T> child) {
         keys[numKeys] = key;
-        children[numKeys + 1] = child;
+        if(!isLeaf())children[numKeys + 1] = child;
         numKeys++;
     }
 
@@ -312,16 +320,16 @@ public class BTree<T extends Comparable<T>> {
         BTree<T> reciever = children[index],
                 donator = children[index + (left ? -1 : 1)];
         int keyIndex = left ? index - 1 : index;
-        BTree<T> grandChGift = donator.isLeaf()? null: donator.children[left ? donator.numKeys + 1 : 0];
+        BTree<T> grandChGift = donator.isLeaf()? null: 
+                donator.children[left ? donator.numKeys + 1 : 0];
 
-        if (left) {
-            donator.deleteLast();
-            reciever.insertFirst(keys[keyIndex], grandChGift);
-        } else {
-            donator.deleteFirst();
-            reciever.insertLast(keys[keyIndex], grandChGift);
-        }
+        if (left) reciever.insertFirst(keys[keyIndex], grandChGift);
+        else reciever.insertLast(keys[keyIndex], grandChGift);
+        
         keys[keyIndex] = donator.keys[left ? donator.getNumKeys() : 0];
+        
+        if(left) donator.deleteLast();
+        else donator.deleteFirst();
     }
 
     /**
@@ -333,28 +341,28 @@ public class BTree<T extends Comparable<T>> {
      */
     private BTree<T> deleteKeyNotHere(int i, T key) {
         if (isLeaf()) return this;
-        i = -i - 1;
-        if (children[i].getNumKeys() <= keys.length / 2) { //do 3a or 3b and then call delte on child.
+        if (!hasKeyToGive(i)) {
             if (hasKeyToGive(i + 1)) rotateKey(i, false);
             else if (hasKeyToGive(i - 1)) rotateKey(i, true);
-            else mergeChild(i == getNumKeys() ? i - 1 : i);
+            else mergeChild(i == getNumKeys() ? --i : i);
         }
         children[i].delete(key);
         return numKeys > 0 ? this : children[0];
     }
 
+    
+    
     /**
      * Deletes a key from an internal node.
      *
      * @param i The index of the key to be delted.
      */
     private void deleteInternalNodeKey(int i) {
-        if (children[i].keys.length >= children.length / 2) {
-            T predecssor
-                    = children[i].keys[children[i].getNumKeys() - 1];
+        if (hasKeyToGive(i)) {
+            T predecssor = children[i].keys[children[i].getNumKeys() - 1];
             children[i].delete(predecssor);
             keys[i] = predecssor;
-        } else if (children[i + 1].keys.length >= children.length / 2) {
+        } else if (hasKeyToGive(i + 1)) {
             T successor = children[i + 1].keys[0];
             children[i + 1].delete(successor);
             keys[i] = successor;
@@ -365,6 +373,18 @@ public class BTree<T extends Comparable<T>> {
     }
 
     /**
+     * Deletes a bunch of keys.
+     * @param keys the keys to be deleted
+     * @return The root of the tree.
+     */
+    private BTree<T> delete(T... keys) {
+        BTree<T> root = this;
+        for (T key : keys)
+            root = root.delete(key);
+        return root;
+    }
+    
+    /**
      * Deletes a key from this subtree.
      *
      * @param key The key to be deleted.
@@ -372,7 +392,7 @@ public class BTree<T extends Comparable<T>> {
      */
     private BTree<T> delete(T key) {
         int i = indexOf(key);
-        if (i < 0) return deleteKeyNotHere(i, key);
+        if (i < 0) return deleteKeyNotHere(-i - 1, key);
         if (isLeaf()) {
             MyArray.delete(i, getNumKeys(), keys);
             numKeys--;
@@ -426,12 +446,15 @@ public class BTree<T extends Comparable<T>> {
 
     @Override
     public String toString() {
-        StringBuilder sb
-                = new StringBuilder(Arrays.toString(keys)).append("\n");
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(keys).filter(key -> key != null).forEach(key -> sb.append(key).append(" "));
+        sb.append("\n");
         if (children != null)
             for (BTree child : children)
-                if (child != null)
-                    sb.append(Arrays.toString(child.keys)).append(" ");
+                if (child != null){
+                    sb.append("|");
+                    Arrays.stream(child.keys).filter(key -> key != null).forEach(key -> sb.append(key).append(" "));
+                }
         return sb.toString();
     }
 
@@ -481,11 +504,9 @@ public class BTree<T extends Comparable<T>> {
 
         testTree = testTree.insert(4, 30, 15, 20, 25);
         
-        testTree = testTree.delete(4);
+        testTree = testTree.delete(20, 25, 30);
         
-        System.out.println(Arrays.toString(testTree.keys));
-        System.out.println();
-        System.out.println(Arrays.toString(testTree.children));
+        System.out.println(testTree.toString());
     }
     
 
