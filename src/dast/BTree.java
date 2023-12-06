@@ -380,7 +380,6 @@ public class BTree<T extends Comparable<T>> {
     private BTree<T> deleteKeyNotHere(int i, T key) {
         if (isLeaf()) return this;
         if (!hasKeyToGive(i)) {
-            if(children[i] == null) return this;
             if (hasKeyToGive(i + 1)) rotateKey(i, false);
             else if (hasKeyToGive(i - 1)) rotateKey(i, true);
             else mergeChild(i == getNumKeys() ? --i : i);
@@ -541,7 +540,7 @@ public class BTree<T extends Comparable<T>> {
 
         testTree = testTree.insert(4, 30, 15, 20, 25, -9, 100, -12, 99, 42, 8);
 
-        testTree = testTree.delete(4, 20, 30);
+        testTree = testTree.delete(4, 20, 30, -9, 100);
         System.out.println(testTree.toString() + "\n");
 //        for(BTree child: testTree.children) 
 //            if(child != null)System.out.println(child.toString() + "\n");
