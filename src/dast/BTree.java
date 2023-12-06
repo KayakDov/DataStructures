@@ -35,6 +35,16 @@ public class BTree<T extends Comparable<T>> {
         this.keys = keys;
         numKeys = countKeys();
     }
+    
+    /**
+     * An empty BTree.
+     * @param numKeys The number of keys at each level.
+     * @param cl The type of element that will be stored in the tree.
+     */
+    public BTree(int numKeys, Class cl){
+        keys = (T[])Array.newInstance(cl, numKeys);
+        this.numKeys = 0;
+    }
 
     /**
      * Counts the number of keys in the keys array.
@@ -54,7 +64,7 @@ public class BTree<T extends Comparable<T>> {
      * @return True if this node is a leaf, false otherwise.
      */
     public boolean isLeaf() {
-        return children == null || children[0] == null;
+        return children == null;
     }
 
     /**
@@ -154,7 +164,7 @@ public class BTree<T extends Comparable<T>> {
      * Inserts the key to the child with the proffered index.
      *
      * @param key The key to be inserted.
-     * @param childIndex The index of the child to recieve the key.
+     * @param childIndex The index of the child to receive the key.
      * @return The root node of the entire tree.
      */
     private void insertInChild(T key, int childIndex) {
@@ -176,10 +186,13 @@ public class BTree<T extends Comparable<T>> {
      * @return The root of the tree after the insert.
      */
     public BTree<T> insert(T key) {
-        if (getNumKeys() >= keys.length) return splitRoot().insert(key);
+        if (isFull()) {
+            BTree<T> root = splitRoot();
+            root.insert(key);
+            return root;
+        }
         if (getNumKeys() == 0) {
-            keys[0] = key;
-            numKeys++;
+            keys[numKeys++] = key;
             return this;
         }
 
@@ -220,6 +233,21 @@ public class BTree<T extends Comparable<T>> {
     }
 
     /**
+     * Merges keys and children in from the proffered tree to this tree.
+     *
+     * @param from The tree from which keys and children should be taken.
+     */
+    private void mergeIn(BTree<T> from) {
+        System.arraycopy(from.keys, 0, keys, getNumKeys(), from.getNumKeys());
+        if (!from.isLeaf()) {
+            if(isLeaf())openChildren();
+            System.arraycopy(from.children, 0, children,
+                    getNumKeys(), from.getNumKeys() + 1);
+        }
+        numKeys += from.getNumKeys();
+    }
+
+    /**
      * merges children at indicis i and i + 1, and moves key[i] into that set of
      * children.
      *
@@ -227,23 +255,17 @@ public class BTree<T extends Comparable<T>> {
      */
     private BTree<T> mergeChild(int i) {
         BTree<T> mergeChild = new BTree<>(keys[0].getClass(), keys.length);
-        BTree<T> left = children[i], right = children[i + 1];
-        System.arraycopy(left.keys, 0, mergeChild.keys, 0, left.getNumKeys());
-        mergeChild.keys[left.getNumKeys()] = keys[i];
-        System.arraycopy(right.keys, 0, mergeChild.keys, left.getNumKeys() + 1,
-                right.getNumKeys());
-        mergeChild.numKeys = left.numKeys + right.numKeys + 1;
-        MyArray.delete(i, getNumKeys(), keys);
-        MyArray.delete(i + 1, getNumKeys() + 1, children);
+
+        mergeChild.mergeIn(children[i]);
+
+        mergeChild.keys[mergeChild.numKeys++] = keys[i];
+
+        mergeChild.mergeIn(children[i + 1]);
+
+        delete(i, false);
+
         children[i] = mergeChild;
-        if (!left.isLeaf()) {
-            mergeChild.openChildren();
-            System.arraycopy(left.children, 0, mergeChild.children, 0,
-                    left.getNumKeys() + 1);
-            System.arraycopy(right.children, 0, mergeChild.children,
-                    left.getNumKeys() + 1, right.getNumKeys() + 1);
-        }
-        numKeys--;
+
         return mergeChild;
     }
 
@@ -255,24 +277,30 @@ public class BTree<T extends Comparable<T>> {
      * otherwise.
      */
     private boolean hasKeyToGive(int childIndex) {
-        return childIndex >= 0 && childIndex < numKeys + 1
-                && !isLeaf() && children[childIndex].hasKeyToGive();
+        return childIndex >= 0 && childIndex < getNumKeys() + 1
+                && !isLeaf() && children[childIndex] != null 
+                &&children[childIndex].hasKeyToGive();
     }
-    
+
     /**
      * Can this node delete a key and still be large enough?
+     *
      * @return True if yes, false otherwise.
      */
-    private boolean hasKeyToGive(){
+    private boolean hasKeyToGive() {
         return getNumKeys() > (keys.length - 1) / 2;
     }
 
     /**
-     * Deletes the first key and its left child.
+     * Deletes the first key and its left (or right) child.
+     *
+     * @param index the index of the node to be deleted.
+     * @param leftGrandChild which grandchild to delete.
      */
-    private void deleteFirst() {
-        MyArray.delete(0, numKeys, keys);
-        if(!isLeaf()) MyArray.delete(0, numKeys + 1, children);
+    private void delete(int index, boolean leftGrandChild) {
+        MyArray.delete(index, numKeys, keys);
+        if (!isLeaf()) MyArray.delete(index + (leftGrandChild ? 0 : 1), numKeys
+                    + 1, children);
         numKeys--;
     }
 
@@ -281,7 +309,7 @@ public class BTree<T extends Comparable<T>> {
      */
     private void deleteLast() {
         keys[getNumKeys() - 1] = null;
-        if(!isLeaf())children[getNumKeys()] = null;
+        if (!isLeaf()) children[getNumKeys()] = null;
         numKeys--;
     }
 
@@ -291,9 +319,10 @@ public class BTree<T extends Comparable<T>> {
      * @param key The key to be inserted.
      * @param child A tree of elements less than the key.
      */
-    private void insertFirst(T key, BTree<T> child) {
-        MyArray.insert(0, numKeys, key, keys);
-        MyArray.insert(0, numKeys + 1, child, children);
+    private void insert(T key, BTree<T> child, int index, boolean leftGrandChild) {
+        MyArray.insert(index, numKeys, key, keys);
+        MyArray.insert(index + (leftGrandChild ? 0 : 1), numKeys + 1, child,
+                children);
         numKeys++;
     }
 
@@ -303,9 +332,9 @@ public class BTree<T extends Comparable<T>> {
      * @param key The key to be appended.
      * @param child A subtree of elements greater than the appended key.
      */
-    private void insertLast(T key, BTree<T> child) {
+    private void append(T key, BTree<T> child) {
         keys[numKeys] = key;
-        if(!isLeaf())children[numKeys + 1] = child;
+        if (!isLeaf()) children[numKeys + 1] = child;
         numKeys++;
     }
 
@@ -320,20 +349,29 @@ public class BTree<T extends Comparable<T>> {
         BTree<T> reciever = children[index],
                 donator = children[index + (left ? -1 : 1)];
         int keyIndex = left ? index - 1 : index;
-        BTree<T> grandChGift = donator.isLeaf()? null: 
-                donator.children[left ? donator.numKeys + 1 : 0];
+        BTree<T> grandChGift = donator.isLeaf() ? null : donator.children[left
+                ? donator.numKeys + 1 : 0];
 
-        if (left) reciever.insertFirst(keys[keyIndex], grandChGift);
-        else reciever.insertLast(keys[keyIndex], grandChGift);
-        
+        if (left) reciever.insert(keys[keyIndex], grandChGift, 0, true);
+        else reciever.append(keys[keyIndex], grandChGift);
+
         keys[keyIndex] = donator.keys[left ? donator.getNumKeys() : 0];
-        
-        if(left) donator.deleteLast();
-        else donator.deleteFirst();
+
+        if (left) donator.deleteLast();
+        else donator.delete(0, true);
     }
 
     /**
-     * To delete a key that's not present in this node's list of keys.
+     * Should this node no longer be the root?
+     *
+     * @return True if this node should no longer be the root, false otherwise.
+     */
+    private boolean tossThis() {
+        return numKeys == 0 && children != null && children[0] != null;
+    }
+
+    /**
+     * To delete a key that's not present in keys.
      *
      * @param key The key to be deleted.
      * @param i The index of the child that should contain the key.
@@ -342,38 +380,64 @@ public class BTree<T extends Comparable<T>> {
     private BTree<T> deleteKeyNotHere(int i, T key) {
         if (isLeaf()) return this;
         if (!hasKeyToGive(i)) {
+            if(children[i] == null) return this;
             if (hasKeyToGive(i + 1)) rotateKey(i, false);
             else if (hasKeyToGive(i - 1)) rotateKey(i, true);
             else mergeChild(i == getNumKeys() ? --i : i);
         }
         children[i].delete(key);
-        return numKeys > 0 ? this : children[0];
+        return tossThis() ? children[0] : this;
     }
 
-    
-    
     /**
-     * Deletes a key from an internal node.
+     * Takes a node from the proffered BTree and deletes the node in that tree.
+     *
+     * @param takeFromChild The child index from which the key is to be taken.
+     * @param key The key to be taken.
+     */
+    private void takeFrom(int takeFromChild, int giveTo, T key) {
+        children[takeFromChild].delete(key);
+        keys[giveTo] = key;
+
+    }
+
+    /**
+     * The last key in this node.
+     *
+     * @return The last key in this node.
+     */
+    private T lastKey() {
+        return keys[getNumKeys() - 1];
+    }
+
+    /**
+     * The first key in this node.
+     *
+     * @return The first key in this node.
+     */
+    private T firstKey() {
+        return keys[0];
+    }
+
+    /**
+     * Deletes a key present in this internal node.
      *
      * @param i The index of the key to be delted.
      */
     private void deleteInternalNodeKey(int i) {
-        if (hasKeyToGive(i)) {
-            T predecssor = children[i].keys[children[i].getNumKeys() - 1];
-            children[i].delete(predecssor);
-            keys[i] = predecssor;
-        } else if (hasKeyToGive(i + 1)) {
-            T successor = children[i + 1].keys[0];
-            children[i + 1].delete(successor);
-            keys[i] = successor;
-        } else {
+        if (hasKeyToGive(i))
+            takeFrom(i, i, children[i].lastKey());
+        else if (hasKeyToGive(i + 1))
+            takeFrom(i + 1, i, children[i + 1].firstKey());
+        else {
             T key = keys[i];
             mergeChild(i).delete(key);
         }
     }
 
     /**
-     * Deletes a bunch of keys.
+     * Deletes a bunch of keys from the subtree.
+     *
      * @param keys the keys to be deleted
      * @return The root of the tree.
      */
@@ -383,7 +447,7 @@ public class BTree<T extends Comparable<T>> {
             root = root.delete(key);
         return root;
     }
-    
+
     /**
      * Deletes a key from this subtree.
      *
@@ -402,16 +466,15 @@ public class BTree<T extends Comparable<T>> {
     }
 
     /**
-     * Splits the grandchildren around the median grandchild of the given child
+     * Splits the grandchildren around the median child of the given child
      * index.
      *
      * @param childIndex The index of the child whose grandchildren need to be
      * split.
      */
-    private void splitGrandChildren(int childIndex) {
-        BTree<T> child = children[childIndex];
-        MyArray<BTree<T>> grandChildKeys = MyArray.split(
-                child.children, (child.getNumKeys() + 1) / 2);
+    private void splitGrandChildren(int childIndex, BTree<T>[] grandChildren) {
+        
+        MyArray<BTree<T>> grandChildKeys = MyArray.split(grandChildren, children[childIndex].getNumKeys() + 1);
         children[childIndex].children = grandChildKeys.left;
         children[childIndex + 1].children = grandChildKeys.right;
     }
@@ -425,90 +488,65 @@ public class BTree<T extends Comparable<T>> {
     private void splitChild(int childIndex) {
 
         BTree<T> child = children[childIndex];
+        BTree<T>[] grandChildren = child.children;
         MyArray<T> childKeys = MyArray.splitAround(
                 child.keys, child.getNumKeys() / 2);
 
         MyArray.insert(
-                childIndex, 
-                numKeys++, 
-                child.keys[child.getNumKeys()/ 2], 
+                childIndex,
+                numKeys,
+                child.keys[child.getNumKeys() / 2],
                 keys);
+        
         MyArray.insert(
-                childIndex, 
-                getNumKeys(), 
+                childIndex,
+                ++numKeys,
                 new BTree<>(childKeys.left),
                 children);
-        
+
         children[childIndex + 1] = new BTree<>(childKeys.right);
 
-        if (child.children != null) splitGrandChildren(childIndex);
+        if (!child.isLeaf()) splitGrandChildren(childIndex, grandChildren);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        Arrays.stream(keys).filter(key -> key != null).forEach(key -> sb.append(key).append(" "));
+        Arrays.stream(keys).filter(key -> key != null).forEach(key -> sb.append(
+                key).append(" "));
         sb.append("\n");
-        if (children != null)
+        if (!isLeaf()){
             for (BTree child : children)
-                if (child != null){
+                if (child != null) {
                     sb.append("|");
-                    Arrays.stream(child.keys).filter(key -> key != null).forEach(key -> sb.append(key).append(" "));
-                }
+                    Arrays.stream(child.keys).filter(key -> key != null).
+                            forEach(key -> sb.append(key).append(" "));
+                }else sb.append("|null ");
+            
+            sb.append("\n\n");
+
+            for(BTree child: children) 
+                if(child != null)sb.append(child.toString()).append("\n");
+                
+        }
+        
         return sb.toString();
-    }
-
-    /**
-     * A sample tree for testing
-     *
-     * @return A sample tree for testing
-     */
-    private static BTree<Integer> sampleTreeForTesting() {
-        BTree<Integer> testTree = new BTree<>(4, 8, 16, null);
-        testTree.children[0] = new BTree<>(1, 2, 3, null);
-        testTree.children[1] = new BTree<>(5, 6, 7, null);
-        testTree.children[2] = new BTree<>(10, 12, 14, null);
-        testTree.children[3] = new BTree<>(17, 18, 19, null);
-
-        testTree.children[2].children[0]
-                = new BTree<>(9, null, null, null);
-        testTree.children[2].children[1]
-                = new BTree<>(11, null, null, null);
-        testTree.children[2].children[2]
-                = new BTree<>(13, null, null, null);
-        testTree.children[2].children[3]
-                = new BTree<>(15, null, null, null);
-
-        return testTree;
-    }
-
-    /**
-     * Tests the splitChild method.
-     */
-    public static void testSplit() {
-
-        BTree<Integer> testTree = sampleTreeForTesting();
-
-        testTree.splitChild(2);
-
-        System.out.println(testTree);//4, 8, 12, 16 \n 123 567 10 14 171819
-        System.out.println(testTree.children[2]);//10 \n 9 11
-        System.out.println(testTree.children[3]);//14 \n 13 15
     }
 
     /**
      * Tests the insert function.
      */
     private static void test() {
-        BTree<Integer> testTree = new BTree<>(null, null, null);
+        BTree<Integer> testTree = new BTree<>(3, Integer.class);
 
-        testTree = testTree.insert(4, 30, 15, 20, 25);
+        testTree = testTree.insert(4, 30, 15, 20, 25, -9, 100, -12, 99, 42, 8);
+
+        testTree = testTree.delete(4, 20, 30);
+        System.out.println(testTree.toString() + "\n");
+//        for(BTree child: testTree.children) 
+//            if(child != null)System.out.println(child.toString() + "\n");
         
-        testTree = testTree.delete(20, 25, 30);
-        
-        System.out.println(testTree.toString());
     }
-    
 
     /**
      * For testing.

@@ -95,7 +95,7 @@ public class MyArray<T> {
      * Deletes the ith element from the proffered array
      *
      * @param <K> The contents of the array.
-     * @param i The index whos element is to be removed.
+     * @param i The index whose element is to be removed.
      * @param lastIndex the number of elements in the array. All elements from
      * the last index are null.
      * @param array The array from whom the ith element is to be deleted.
@@ -115,7 +115,7 @@ public class MyArray<T> {
      * @param array The array to receive the insertion.
      */
     public static <K> void insert(int index, int lastIndex, K val, K[] array){
-        for(int i = lastIndex; i >= index; i--)
+        for(int i = lastIndex - 1; i >= index; i--)
             array[i + 1] = array[i];
         array[index] = val;
     }
