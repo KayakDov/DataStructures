@@ -142,7 +142,8 @@ public class BTree<T extends Comparable<T>> {
          * @return The parent node.
          */
         private BTreeNode<T> splitRoot() {
-            BTreeNode<T> root = new BTreeNode<>(keys[0].getClass(), keys.length);
+            BTreeNode<T> root = 
+                    new BTreeNode<>(keys[0].getClass(), keys.length);
             root.openChildren();
             root.children[0] = this;
             root.splitChild(0);
@@ -563,29 +564,31 @@ public class BTree<T extends Comparable<T>> {
 
     /**
      * The constrcutor
+     *
      * @param keysPerNode The number of keys in each node.
      */
     public BTree(int keysPerNode) {
         this.keysPerNode = keysPerNode;
     }
-    
-    
-    
+
     /**
      * deletes keys from the tree.
+     *
      * @param keys The keys to be deleted.
      */
-    public void delete(T... keys){
+    public void delete(T... keys) {
         root = root.delete(keys);
     }
-        
+
     /**
      * Inserts keys into the tree.
+     *
      * @param keys The keys to be inserted.
      */
-    public void insert(T... keys){
-        if(keys.length == 0) return;
-        if(root == null) root = new BTreeNode<>(keysPerNode, keys[0].getClass());
+    public void insert(T... keys) {
+        if (keys.length == 0) return;
+        if (root == null) root
+                    = new BTreeNode<>(keysPerNode, keys[0].getClass());
         root = root.insert(keys);
     }
 
@@ -593,9 +596,7 @@ public class BTree<T extends Comparable<T>> {
     public String toString() {
         return root.toString();
     }
-    
-    
-    
+
     /**
      * Tests the insert function.
      */
@@ -605,7 +606,7 @@ public class BTree<T extends Comparable<T>> {
         testTree.insert(4, 30, 15, 20, 25, -9, 100, -12, 99, 42, 8);
 
         testTree.delete(4, -3);
-        
+
         System.out.println(testTree.toString() + "\n");
     }
 
