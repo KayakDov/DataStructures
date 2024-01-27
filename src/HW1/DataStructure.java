@@ -1,9 +1,15 @@
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
 /**
  * Represents a singly linked list.
  *
  * @param <T> the type of elements stored in the linked list
  */
-public class DataStructure<T> {
+public class DataStructure<T> implements List<T>{
 
     /**
      * Default constructor for the DataStructure class.
@@ -23,13 +29,13 @@ public class DataStructure<T> {
         // TODO: Implement this method
     }
 
-    /**
-     * Inserts a new node at the end of the linked list.
-     * @param data the data to be inserted
-     */
-    public void add(T data) {
-        // TODO: Implement this method
-    }
+//    /**
+//     * Inserts a new node at the end of the linked list.
+//     * @param data the data to be inserted
+//     */
+//    public void add(T data) {
+//        // TODO: Implement this method
+//    }
 
     /**
      * Deletes a node with the given data from the linked list.
@@ -40,16 +46,16 @@ public class DataStructure<T> {
         // TODO: Implement this method
     }
 
-    /**
-     * Searches for a node with the given data in the linked list.
-     *
-     * @param data the data to be searched
-     * @return true if the data is found, false otherwise
-     */
-    public boolean contains(T data) {
-        // TODO: Implement this method
-        return false;
-    }
+//    /**
+//     * Searches for a node with the given data in the linked list.
+//     *
+//     * @param data the data to be searched
+//     * @return true if the data is found, false otherwise
+//     */
+//    public boolean contains(T data) {
+//        // TODO: Implement this method
+//        return false;
+//    }
 
 
     /**
@@ -57,14 +63,119 @@ public class DataStructure<T> {
      *
      * @return the number of elements in the linked list
      */
+    @Override
     public int size() {
-        // TODO: Implement this method to return the size of the linked list
-        return 0;
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+//
+//    @Override
+//    public String toString() {
+//    
+//    }
+
+    @Override
+    public boolean isEmpty() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public String toString() {
-    
+    public Iterator<T> iterator() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public Object[] toArray() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean containsAll(
+            Collection<?> c) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean addAll(
+            Collection<? extends T> c) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean addAll(int index,
+            Collection<? extends T> c) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean removeAll(
+            Collection<?> c) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean retainAll(
+            Collection<?> c) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public T get(int index) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public T set(int index, T element) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void add(int index, T element) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public T remove(int index) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int indexOf(Object o) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public ListIterator<T> listIterator() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public ListIterator<T> listIterator(int index) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public List<T> subList(int fromIndex, int toIndex) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
     
